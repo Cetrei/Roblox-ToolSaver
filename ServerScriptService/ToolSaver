@@ -1,0 +1,27 @@
+local dss = game:GetService("DataStoreService")
+local TDS = dss:GetDataStore("ToolsData")
+
+local TF = game.ServerStorage.Tool
+
+game.Players.PlayerAdded:Connect(function(plr)
+	local toolsSaved = TDS:GetAsync(plr.UserId .. "-ts") or {}
+	for i, toolSaved in pairs(toolsSaved) do
+		if TF:FindFirstChild(toolSaved) then 
+			TF[toolSaved]:Clone().Parent = plr.Backpack
+		end
+	end
+	plr.CharacterRemoving:Connect(function(char)
+		char.Humanoid:UnequipTools()
+    end)
+end)
+
+game.Players.PlayerRemoving:Connect(function(plr)
+	local TO = {}
+	for i, toolInBackpack in pairs(plr.Backpack:GetChildren()) do
+		table.insert(TO, toolInBackpack.Name)
+	end
+	local success, errormsg = pcall(function()
+		TDS:SetAsync(plr.UserId .. "-ts", TO)
+	end)
+	if errormsg then warn(errormsg) end
+end)
